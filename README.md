@@ -28,4 +28,5 @@ Health check (for running in e.g. Docker)
 Credits
 =====
 Original Code - Ilia Zlatkin
+
 Improvements - Darin Debrestian
