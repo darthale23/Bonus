@@ -46,8 +46,21 @@ public class PostDB {
             // Connect to the forwarded port (the local end of the SSH tunnel)
             String url = "jdbc:mariadb://localhost:" + forwardedPort + "/dbname";
             con = DriverManager.getConnection(url, databaseUsername, databasePassword);
+
+            createTable();
         } catch (Exception e) {
             System.out.println(e.getMessage());
+        }
+    }
+
+    static void createTable() {
+        try {
+            Statement st = con.createStatement();
+            String sqlQuery = "CREATE TABLE IF NOT EXISTS Posts(timeStamp DATE, text VARCHAR(200));";
+            st.execute(sqlQuery);
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            System.out.println("Couldn't create SQL Table");
         }
     }
 
@@ -60,14 +73,14 @@ public class PostDB {
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("YYYY-MM-DD");
             LocalDateTime now = LocalDateTime.now();
             String timeStampToDB = dtf.format(now);
-            String sqlQuery = "INSERT INTO SpringBootTable " +
+            String sqlQuery = "INSERT INTO Posts " +
                     "VALUES (\""+ timeStampToDB + "\", '" + post + "')";
             st.executeUpdate(sqlQuery);
             System.out.println("query was successfully executed");
         }
         catch (SQLException e) {
             System.out.println(e.getMessage());
-            System.out.println("SQL statement wasn't executed!");
+            System.out.println("Couldn't add post to DB");
         }
     }
 
@@ -75,12 +88,13 @@ public class PostDB {
     static boolean deletePost(String post) {
         try {
             Statement st = con.createStatement();
-            String sqlQuery = "DELETE FROM SpringBootTable WHERE post = \"" +
+            String sqlQuery = "DELETE FROM Posts WHERE post = \"" +
                 post + "\";";
-            st.executeUpdate(sqlQuery);
-            return true;
+            int rowsAffected = st.executeUpdate(sqlQuery);
+            return rowsAffected != 0;
         } catch (SQLException e) {
             System.out.println(e.getMessage());
+            System.out.println("Couldn't delete post from DB");
             return false;
         }
     }
@@ -90,7 +104,7 @@ public class PostDB {
             Statement st = con.createStatement();
             String sql = "select * from SpringBootTable";
             ResultSet rs = st.executeQuery(sql);
-            String result = "timeStamp" + "\t" + "line\n";
+            String result = "timeStamp" + "\t" + "text\n";
             // Extract result from ResultSet rs
             while(rs.next()){
                 result += "" + rs.getString("timeStamp")
@@ -101,7 +115,7 @@ public class PostDB {
         }
         catch (SQLException e) {
             System.out.println(e.getMessage());
-            System.out.println("SQL statement wasn't executed!");
+            System.out.println("Couldn't get all posts from DB");
             return "Internal error: 500";
         }
     }
