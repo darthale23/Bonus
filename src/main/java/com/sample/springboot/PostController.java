@@ -1,12 +1,19 @@
 package com.sample.springboot;
 
 import com.sample.utils.LoggerPost;
+import com.sample.utils.LoginInfo;
+
+import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 @Controller
 public class PostController {
@@ -14,29 +21,89 @@ public class PostController {
     @Autowired
     private Environment env;
 
+    private static final String logAttr = "LOGGERPOST";
+
+    private LoggerPost getLogger(HttpSession sesh) {
+        String logPath = env.getProperty("post.log.file");
+        LoggerPost pl = (LoggerPost)sesh.getAttribute(logAttr);
+        if (pl == null) {
+            System.out.println("Creating new LoggerPost");
+            pl = new LoggerPost(logPath);
+            sesh.setAttribute(logAttr, pl);
+        }
+        return pl;
+    }
+
     @RequestMapping(value = "/")
-    public String Index() {
+    public String Index(Model model, HttpSession sesh) {
+        LoggerPost pl = getLogger(sesh);
+        model.addAttribute("isLoggedIn", pl.GetLoggedIn());
+        return "index";
+    }
+
+    @RequestMapping(value = "/login", method=RequestMethod.GET)
+    public String Login(Model model, HttpSession sesh) {
+        System.out.println("GET /login");
+        LoggerPost pl = getLogger(sesh);
+        model.addAttribute("isLoggedIn", pl.GetLoggedIn());
+        return "login";
+    }
+
+    @PostMapping(value = "/login")
+    public String Login(Model model, HttpSession sesh, HttpServletRequest req) {
+        System.out.println("POST /login");
+        LoggerPost pl = getLogger(sesh);
+        LoginInfo login = new LoginInfo(
+            req.getParameter("dbHost"),
+            req.getParameter("dbDBName"),
+            req.getParameter("dbUser"),
+            req.getParameter("dbPass"),
+            req.getParameter("jumpHost"),
+            req.getParameter("jumpUser"),
+            req.getParameter("jumpPass"));
+        if (login.jumpHost == "") {
+            login.jumpHost = null; login.jumpUser = null; login.jumpPass = null;
+        }
+        System.out.println("Attempting to connect to host \"" + login.dbHost +
+            "\", with username \"" + login.dbUser + "\"");
+        if (login.jumpHost != null)
+            System.out.println("Using SSH Jump host \"" + login.jumpHost +
+                "\" with username \"" + login.jumpUser + "\"");
+        pl.Login(login);
+        model.addAttribute("isLoggedIn", pl.GetLoggedIn());
+        if (!pl.GetLoggedIn())
+            model.addAttribute("loginFailed", true);
+        else
+            return "index";
+
+        return "login";
+    }
+
+    @RequestMapping(value = "/logout")
+    public String Logout(Model model, HttpSession sesh) {
+        LoggerPost pl = getLogger(sesh);
+        pl.Logout();
+        model.addAttribute("isLoggedIn", pl.GetLoggedIn());
         return "index";
     }
 
     @RequestMapping(value = "/api")
-    public String AddPost(@RequestParam("post_text") String inputTest,
-    Model model) {
+    public String AddPost(@RequestParam("post_text") String post,
+    Model model, HttpSession sesh) {
         model.addAttribute("title","Post Page");
-        System.out.println(inputTest);
-        String logPath = env.getProperty("post.log.file");
-        System.out.println(logPath);
-        LoggerPost pl = new LoggerPost(logPath);
-        pl.PostToDB(inputTest);
+        System.out.println(post);
+        LoggerPost pl = getLogger(sesh);
+        model.addAttribute("isLoggedIn", pl.GetLoggedIn());
+        pl.PostToDB(post);
         return "index";
     }
 
 
     @RequestMapping(value = "/history")
-    public String GetAllPosts(Model model) {
-        String logPath = env.getProperty("post.log.file");
-        LoggerPost pl = new LoggerPost(logPath);
+    public String GetAllPosts(Model model, HttpSession sesh) {
+        LoggerPost pl = getLogger(sesh);
         String history = pl.GetPostsFromDB();
+        model.addAttribute("isLoggedIn", pl.GetLoggedIn());
         model.addAttribute("history", history);
         model.addAttribute("newLineChar", '\n');
         return "history";
@@ -44,10 +111,10 @@ public class PostController {
 
     @RequestMapping(value = "/delete")
     public String DeletePost(@RequestParam("post_text") String deleteText, 
-    Model model) {
+    Model model, HttpSession sesh) {
         model.addAttribute("title", "Delete Page");
-        String logPath = env.getProperty("post.log.file");
-        LoggerPost pl = new LoggerPost(logPath);
+        LoggerPost pl = getLogger(sesh);
+        model.addAttribute("isLoggedIn", pl.GetLoggedIn());
         if (!deleteText.isEmpty()) {
             boolean deleted = pl.DeletePostFromDB(deleteText);
             model.addAttribute("deleted", deleted);

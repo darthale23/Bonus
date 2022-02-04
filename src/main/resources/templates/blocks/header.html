@@ -5,5 +5,15 @@
             <a class="p-2 text-dark" href="/history">History</a>
             <a class="p-2 text-dark" href="/delete?post_text=">Delete</a>
         </nav>
+        <nav style="position: absolute; right: 20px;">
+            <th:block th:if="${!isLoggedIn}">
+                You aren't logged in. Log in
+                <a href="/login">here</a>.
+            </th:block>
+            <th:block th:if="${isLoggedIn}">
+                You are currently logged in.
+                <a href="/logout">Log out</a>.
+            </th:block>
+        </nav>
     </header>
 </div>

@@ -7,9 +7,10 @@ import java.util.Iterator;
 
 public class LoggerPost {
     private String filePath;
+    private PostDB db;
 
     public LoggerPost(String path) {
-        PostDB.connect();
+        db = new PostDB();
         this.filePath = path;
         File logFile = new File(path);
         try {
@@ -21,6 +22,18 @@ public class LoggerPost {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void Login(LoginInfo login) {
+        db.Login(login);
+    }
+
+    public void Logout() {
+        db.Logout();
+    }
+
+    public boolean GetLoggedIn() {
+        return db.GetLoggedIn();
     }
 
     @Deprecated
@@ -36,7 +49,7 @@ public class LoggerPost {
     }
 
     public void PostToDB(String post) {
-        PostDB.addPost(post);
+        db.addPost(post);
     }
 
     @Deprecated
@@ -69,7 +82,7 @@ public class LoggerPost {
     }
 
     public String GetPostsFromDB() {
-        return PostDB.getAllPosts();
+        return db.getAllPosts();
     }
 
     @Deprecated
@@ -108,6 +121,6 @@ public class LoggerPost {
     }
 
     public boolean DeletePostFromDB(String post) {
-        return PostDB.deletePost(post);
+        return db.deletePost(post);
     }
 }

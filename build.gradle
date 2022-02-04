@@ -17,6 +17,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-rest'
     implementation 'org.springframework.boot:spring-boot-devtools'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.session:spring-session-core'
     implementation 'com.h2database:h2'
     compile group: 'org.springframework.boot', name: 'spring-boot-starter-thymeleaf'
     testImplementation('org.springframework.boot:spring-boot-starter-test') {

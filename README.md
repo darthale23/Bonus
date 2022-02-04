@@ -25,12 +25,6 @@ View post history
 Health check (for running in e.g. Docker) 
 * `http://localhost:8080/actuator/health`
 
-
-How To
-=====
-Create Table for logger
-* `create table SptringBootTable(timeStamp DATE, line VARCHAR(50));`
-
 Credits
 =====
 Original Code - Ilia Zlatkin
