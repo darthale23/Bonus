@@ -7,19 +7,15 @@ import java.time.format.DateTimeFormatter;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 
-
 public class PostDB {
     private Connection con;
     private LoginInfo login;
     private boolean isLoggedIn;
+    private String known_hosts_path;
 
-    public PostDB() {
+    public PostDB(String known_hosts_path) {
         isLoggedIn = false;
-    }
-
-    public PostDB(LoginInfo login) {
-        isLoggedIn = false;
-        Login(login);
+        this.known_hosts_path = known_hosts_path;
     }
 
     public void Login(LoginInfo login) {
@@ -54,8 +50,13 @@ public class PostDB {
             if (login.jumpHost != null) {
                 session = jsch.getSession(login.jumpUser, login.jumpHost, 22);
 
-                if (new File("~/.ssh/known_hosts").exists())
-                    jsch.setKnownHosts("~/.ssh/known_hosts");
+                // Disabled until I can figure out how to prompt user to
+                //   verify host's RSA key.
+                //jsch.setKnownHosts(known_hosts_path);
+                java.util.Properties config = new java.util.Properties();
+                config.put("StrictHostKeyChecking", "no");
+                session.setConfig(config);
+
                 session.setPassword(login.jumpPass);
                 if (new File("~/.ssh/id_rsa").exists())
                     // Public key
@@ -81,7 +82,8 @@ public class PostDB {
             isLoggedIn = true;
             createTable();
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
+            System.out.println("Couldn't connect");
         }
     }
 
@@ -114,7 +116,6 @@ public class PostDB {
             String sqlQuery = "INSERT INTO Posts " +
                     "VALUES (\""+ timeStampToDB + "\", '" + post + "')";
             st.executeUpdate(sqlQuery);
-            System.out.println("query was successfully executed");
             return true;
         }
         catch (SQLException e) {

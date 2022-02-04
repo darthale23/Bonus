@@ -9,8 +9,8 @@ public class LoggerPost {
     private String filePath;
     private PostDB db;
 
-    public LoggerPost(String path) {
-        db = new PostDB();
+    public LoggerPost(String path, String known_hosts_file) {
+        db = new PostDB(known_hosts_file);
         this.filePath = path;
         File logFile = new File(path);
         try {

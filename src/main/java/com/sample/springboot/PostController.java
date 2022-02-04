@@ -25,10 +25,11 @@ public class PostController {
 
     private LoggerPost getLogger(HttpSession sesh) {
         String logPath = env.getProperty("post.log.file");
+        String known_hosts_path = env.getProperty("known_hosts_path");
         LoggerPost pl = (LoggerPost)sesh.getAttribute(logAttr);
         if (pl == null) {
             System.out.println("Creating new LoggerPost");
-            pl = new LoggerPost(logPath);
+            pl = new LoggerPost(logPath, known_hosts_path);
             sesh.setAttribute(logAttr, pl);
         }
         return pl;
