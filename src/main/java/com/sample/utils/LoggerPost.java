@@ -14,11 +14,7 @@ public class LoggerPost {
         this.filePath = path;
         File logFile = new File(path);
         try {
-            if (logFile.createNewFile()) {
-                System.out.println("Log file created: " + logFile.getName());
-            } else {
-                System.out.println("Log file already exists.");
-            }
+            logFile.createNewFile();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -77,7 +73,6 @@ public class LoggerPost {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println(content);
         return content;
     }
 

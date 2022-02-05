@@ -28,7 +28,6 @@ public class PostController {
         String known_hosts_path = env.getProperty("known_hosts_path");
         LoggerPost pl = (LoggerPost)sesh.getAttribute(logAttr);
         if (pl == null) {
-            System.out.println("Creating new LoggerPost");
             pl = new LoggerPost(logPath, known_hosts_path);
             sesh.setAttribute(logAttr, pl);
         }
@@ -44,7 +43,6 @@ public class PostController {
 
     @RequestMapping(value = "/login", method=RequestMethod.GET)
     public String Login(Model model, HttpSession sesh) {
-        System.out.println("GET /login");
         LoggerPost pl = getLogger(sesh);
         model.addAttribute("isLoggedIn", pl.GetLoggedIn());
         return "login";
@@ -52,7 +50,6 @@ public class PostController {
 
     @PostMapping(value = "/login")
     public String Login(Model model, HttpSession sesh, HttpServletRequest req) {
-        System.out.println("POST /login");
         LoggerPost pl = getLogger(sesh);
         LoginInfo login = new LoginInfo(
             req.getParameter("dbHost"),
@@ -65,11 +62,6 @@ public class PostController {
         if (login.jumpHost == "") {
             login.jumpHost = null; login.jumpUser = null; login.jumpPass = null;
         }
-        System.out.println("Attempting to connect to host \"" + login.dbHost +
-            "\", with username \"" + login.dbUser + "\"");
-        if (login.jumpHost != null)
-            System.out.println("Using SSH Jump host \"" + login.jumpHost +
-                "\" with username \"" + login.jumpUser + "\"");
         pl.Login(login);
         model.addAttribute("isLoggedIn", pl.GetLoggedIn());
         if (!pl.GetLoggedIn())
@@ -92,7 +84,6 @@ public class PostController {
     public String AddPost(@RequestParam("post_text") String post,
     Model model, HttpSession sesh) {
         model.addAttribute("title","Post Page");
-        System.out.println(post);
         LoggerPost pl = getLogger(sesh);
         model.addAttribute("isLoggedIn", pl.GetLoggedIn());
         pl.PostToDB(post);
