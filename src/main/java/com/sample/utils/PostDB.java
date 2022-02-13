@@ -46,6 +46,7 @@ public class PostDB {
             JSch jsch = new JSch();
             Session session;
             int realDBPort;
+            String realDBHost;
 
             if (login.jumpHost != null) {
                 session = jsch.getSession(login.jumpUser, login.jumpHost, 22);
@@ -69,13 +70,15 @@ public class PostDB {
                 //   database host/port
                 realDBPort = session.setPortForwardingL(0, login.dbHost,
                         dbPort);
+                realDBHost = "localhost";
             } else {
                 realDBPort = dbPort;
+                realDBHost = login.dbHost;
             }
             String driver = "org.mariadb.jdbc.Driver";
             Class.forName(driver);
             // Connect to the forwarded port (the local end of the SSH tunnel)
-            String url = "jdbc:mariadb://localhost:" + realDBPort + "/" +
+            String url = "jdbc:mariadb://" + realDBHost + ":" + realDBPort + "/" +
                 login.dbDBName;
             con = DriverManager.getConnection(url, login.dbUser, login.dbPass);
 
