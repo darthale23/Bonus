@@ -78,9 +78,29 @@ public class PostDB {
             String driver = "org.mariadb.jdbc.Driver";
             Class.forName(driver);
             // Connect to the forwarded port (the local end of the SSH tunnel)
-            String url = "jdbc:mariadb://" + realDBHost + ":" + realDBPort + "/" +
-                login.dbDBName;
-            con = DriverManager.getConnection(url, login.dbUser, login.dbPass);
+            // Omit the dbDBName so we can create it if it doesn't exist.
+            String url = "jdbc:mariadb://" + realDBHost + ":" + realDBPort;
+            try {
+                con = DriverManager.getConnection(url + "/" + login.dbDBName,
+                        login.dbUser, login.dbPass);
+            } catch (SQLException e) {
+                System.out.println("DB doesn't exist, trying to create");
+                try {
+                    con = DriverManager.getConnection(url,
+                            login.dbUser, login.dbPass);
+                    con.createStatement().execute("CREATE DATABASE " +
+                        login.dbDBName);
+                    con = DriverManager.getConnection(
+                            url + "/" + login.dbDBName,
+                            login.dbUser, login.dbPass);
+                } catch (SQLException ei) {
+                    ei.printStackTrace();
+                    System.out.println("Couldn't find or create database with given name");
+                    throw ei;
+                }
+            }
+
+            // If we got here, then the dbDBName exists and con is using it.
 
             isLoggedIn = true;
             createTable();
