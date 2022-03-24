@@ -8,10 +8,14 @@ import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 
 public class PostDB {
+    public static final String MARIADB_DRIVER = "org.mariadb.jdbc.Driver";
+    public static final String H2_DRIVER = "org.h2.Driver";
+
     private Connection con;
     private LoginInfo login;
     private boolean isLoggedIn;
     private String known_hosts_path;
+    private String dbDriver;
 
     public PostDB(String known_hosts_path) {
         isLoggedIn = false;
@@ -20,6 +24,12 @@ public class PostDB {
 
     public void Login(LoginInfo login) {
         this.login = login;
+        connect();
+    }
+
+    public void Login(LoginInfo login, String driver) {
+        this.login = login;
+        this.dbDriver = driver;
         connect();
     }
 
@@ -37,6 +47,19 @@ public class PostDB {
 
     public boolean GetLoggedIn() {
         return isLoggedIn;
+    }
+
+    private String makeUrl(String host, int port, String dbName)
+     throws ClassNotFoundException {
+        if (dbDriver == null)
+            return null;
+        Class.forName(dbDriver);
+        if (dbDriver.equals(MARIADB_DRIVER))
+            return "jdbc:mariadb://" + host + ":" + port + "/" + dbName;
+        else if (dbDriver.equals(H2_DRIVER))
+            return "jdbc:h2:mem:" + dbName;
+        else
+            return null;
     }
 
     private void connect() {
@@ -75,23 +98,20 @@ public class PostDB {
                 realDBPort = dbPort;
                 realDBHost = login.dbHost;
             }
-            String driver = "org.mariadb.jdbc.Driver";
-            Class.forName(driver);
-            // Connect to the forwarded port (the local end of the SSH tunnel)
-            // Omit the dbDBName so we can create it if it doesn't exist.
-            String url = "jdbc:mariadb://" + realDBHost + ":" + realDBPort;
             try {
-                con = DriverManager.getConnection(url + "/" + login.dbDBName,
+                con = DriverManager.getConnection(
+                        makeUrl(realDBHost, realDBPort, login.dbDBName),
                         login.dbUser, login.dbPass);
             } catch (SQLException e) {
                 System.out.println("DB doesn't exist, trying to create");
                 try {
-                    con = DriverManager.getConnection(url,
+                    con = DriverManager.getConnection(
+                            makeUrl(realDBHost, realDBPort, ""),
                             login.dbUser, login.dbPass);
                     con.createStatement().execute("CREATE DATABASE " +
                         login.dbDBName);
                     con = DriverManager.getConnection(
-                            url + "/" + login.dbDBName,
+                            makeUrl(realDBHost, realDBPort, login.dbDBName),
                             login.dbUser, login.dbPass);
                 } catch (SQLException ei) {
                     ei.printStackTrace();
@@ -137,7 +157,7 @@ public class PostDB {
             LocalDateTime now = LocalDateTime.now();
             String timeStampToDB = dtf.format(now);
             String sqlQuery = "INSERT INTO Posts " +
-                    "VALUES (\""+ timeStampToDB + "\", '" + post + "')";
+                    "VALUES (DATE '"+ timeStampToDB + "', '" + post + "')";
             st.executeUpdate(sqlQuery);
             return true;
         }

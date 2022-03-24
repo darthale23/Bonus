@@ -23,7 +23,7 @@ public class PostController {
 
     private static final String logAttr = "LOGGERPOST";
 
-    private LoggerPost getLogger(HttpSession sesh) {
+    LoggerPost getLogger(HttpSession sesh) {
         String logPath = env.getProperty("post.log.file");
         String known_hosts_path = env.getProperty("known_hosts_path");
         LoggerPost pl = (LoggerPost)sesh.getAttribute(logAttr);
@@ -86,7 +86,8 @@ public class PostController {
         model.addAttribute("title","Post Page");
         LoggerPost pl = getLogger(sesh);
         model.addAttribute("isLoggedIn", pl.GetLoggedIn());
-        pl.PostToDB(post);
+        if (pl.GetLoggedIn())
+            pl.PostToDB(post);
         return "index";
     }
 
