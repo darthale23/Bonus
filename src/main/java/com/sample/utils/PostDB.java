@@ -24,6 +24,7 @@ public class PostDB {
 
     public void Login(LoginInfo login) {
         this.login = login;
+        this.dbDriver = MARIADB_DRIVER;
         connect();
     }
 
@@ -49,7 +50,7 @@ public class PostDB {
         return isLoggedIn;
     }
 
-    private String makeUrl(String host, int port, String dbName)
+    public String makeUrl(String host, int port, String dbName)
      throws ClassNotFoundException {
         if (dbDriver == null)
             return null;
