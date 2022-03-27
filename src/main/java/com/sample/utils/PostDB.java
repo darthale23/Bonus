@@ -208,5 +208,27 @@ public class PostDB {
             return "Internal error: 500";
         }
     }
+
+    String getSortedPost() {
+        if(!isLoggedIn)
+            return "Internal error: Not logged in";
+        try {
+            Statement st = con.createStatement();
+            String sql = "SELECT * FROM Posts ORDER BY text";
+            ResultSet rs = st.executeQuery(sql);
+            String result = "text" + "\t" + "timeStamp\n";
+            //extract result from ResultSet rs
+            while(rs.next()){
+                result += "" + rs.getString("text") + "\t" + rs.getString("timeStamp") + "\n";
+            }
+            rs.close();
+            return result;
+        }
+        catch (SQLException e) {
+            System.out.println(e.getMessage());
+            System.out.println("Couldn't get all posts from DB");
+            return "Internal error: 500 beep boop";
+        }
+    }
 }
 

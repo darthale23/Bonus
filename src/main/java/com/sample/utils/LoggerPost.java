@@ -79,6 +79,8 @@ public class LoggerPost {
     public String GetPostsFromDB() {
         return db.getAllPosts();
     }
+    public String GetSortedPostsFromDB() {return db.getSortedPost();}
+
 
     @Deprecated
     public boolean DeletePostFromLog(String post) {

@@ -102,6 +102,17 @@ public class PostController {
         return "history";
     }
 
+    @RequestMapping(value = "/lexihistory")
+    public String GetSortedPosts(Model model, HttpSession sesh)
+    {
+        LoggerPost pl = getLogger(sesh);
+        String lexihistory = pl.GetSortedPostsFromDB();
+        model.addAttribute("isLoggedIn", pl.GetLoggedIn());
+        model.addAttribute("lexihistory", lexihistory);
+        model.addAttribute("newLineChar", '\n');
+        return "lexihistory";
+    }
+
     @RequestMapping(value = "/delete")
     public String DeletePost(@RequestParam("post_text") String deleteText, 
     Model model, HttpSession sesh) {
